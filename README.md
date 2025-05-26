@@ -1,4 +1,4 @@
-# Climate Change Hotspot Mapping (Synthetic Data)
+# Climate Change Hotspot Mapping 
 
 This project simulates climate change hotspot mapping using synthetic spatiotemporal temperature anomaly data. It demonstrates how temperature trends over time can be analyzed to identify regions experiencing statistically significant warming — referred to as *hotspots*.
 
