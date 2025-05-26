@@ -1,0 +1,56 @@
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+from scipy.stats import linregress
+
+# Set parameters
+np.random.seed(42)
+grid_size = (50, 50)  # 50x50 spatial grid
+years = np.arange(2000, 2021)  # 21 years
+n_years = len(years)
+
+# Generate synthetic spatiotemporal temperature anomaly data
+# Assume base temperature anomaly + random noise + slight trend
+base_anomaly = np.random.normal(0, 0.3, size=grid_size)
+time_trends = np.random.normal(0.02, 0.01, size=grid_size)  # °C/year
+
+# Create temperature anomaly data (grid_size x years)
+temp_data = np.zeros((grid_size[0], grid_size[1], n_years))
+
+for i in range(n_years):
+    year_offset = years[i] - years[0]
+    noise = np.random.normal(0, 0.1, size=grid_size)
+    temp_data[:, :, i] = base_anomaly + time_trends * year_offset + noise
+
+# Compute pixel-wise linear trend over time using linear regression
+slopes = np.zeros(grid_size)
+p_values = np.zeros(grid_size)
+
+for i in range(grid_size[0]):
+    for j in range(grid_size[1]):
+        y = temp_data[i, j, :]
+        slope, _, _, p, _ = linregress(years, y)
+        slopes[i, j] = slope
+        p_values[i, j] = p
+
+# Define hotspots as areas with significant warming trend (p < 0.05 and slope > threshold)
+threshold_slope = 0.02  # e.g., 0.02°C/year
+hotspots = (p_values < 0.05) & (slopes > threshold_slope)
+
+# Plot results
+plt.figure(figsize=(18, 5))
+
+plt.subplot(1, 3, 1)
+sns.heatmap(np.mean(temp_data, axis=2), cmap='coolwarm', cbar_kws={'label': 'Mean Temp Anomaly (°C)'})
+plt.title('Mean Temperature Anomaly (2000-2020)')
+
+plt.subplot(1, 3, 2)
+sns.heatmap(slopes, cmap='YlOrRd', cbar_kws={'label': 'Warming Trend (°C/year)'})
+plt.title('Temperature Trend per Pixel')
+
+plt.subplot(1, 3, 3)
+sns.heatmap(hotspots.astype(int), cmap='Reds', cbar_kws={'label': 'Hotspot (1=True)'})
+plt.title('Identified Climate Change Hotspots')
+
+plt.tight_layout()
+plt.show()
